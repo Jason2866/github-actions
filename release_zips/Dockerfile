@@ -13,6 +13,6 @@ COPY --from=ghcr.io/astral-sh/uv:latest /uv /uvx /bin/
 # Install Python dependencies with uv
 RUN uv pip install --system PyGithub
 
-ADD release_tar.py /release_tar.py
+ADD release_zips.py /release_zips.py
 
-ENTRYPOINT ["python", "/release_tar.py"]
+ENTRYPOINT ["python", "/release_zips.py"]
