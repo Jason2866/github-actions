@@ -1,6 +1,6 @@
 #!/usr/bin/env python
 
-from github import Github, GithubException
+from github import Github, GithubException, Auth
 import os
 import shutil
 import glob
@@ -21,7 +21,8 @@ def main():
     github_repo = os.environ["GITHUB_REPOSITORY"]
 
     print("Connecting to GitHub...")
-    github = Github(github_token)
+    auth = Auth.Token(github_token)
+    github = Github(auth=auth)
     repo = github.get_repo(github_repo)
 
     if repo.private:
