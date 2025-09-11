@@ -53,7 +53,7 @@ def main():
     print("Creating tar.xz archive {}...".format(tarfile))
     # Create tar.xz with maximum compression
     # --exclude-vcs-ignores excludes files matching .gitignore patterns
-    subprocess.run(["tar", "-cJf", "--exclude-vcs-ignores", "--exclude=.*", tarfile, directory], check=True, env={**os.environ, "XZ_OPT": "-9"})
+    subprocess.run(["tar", "-cJf", "--exclude=.*", tarfile, directory], check=True, env={**os.environ, "XZ_OPT": "-9"})
 
     try:
         release = repo.get_release(tag)
