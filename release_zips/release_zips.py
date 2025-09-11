@@ -1,6 +1,6 @@
 #!/usr/bin/env python
 
-from github import Github, GithubException
+from github import Github, GithubException, Auth
 import os
 import shutil
 import glob
@@ -21,12 +21,13 @@ def main():
     github_repo = os.environ["GITHUB_REPOSITORY"]
 
     print("Connecting to GitHub...")
-    github = Github(github_token)
+    auth = Auth.Token(github_token)
+    github = Github(auth=auth)
     repo = github.get_repo(github_repo)
 
     if repo.private:
         # For private repos, git needs authentication (but set so that the
-        # remote URL doesn't embed the temporary credentials in the zip file or
+        # remote URL doesn't embed the temporary credentials in the tar.xz file or
         # even store the temporary credential token in the filesystem.)
         subprocess.run(["git",  "config", "--global", "credential.https://github.com.username", github_actor], check=True)
         helper_cmd  = "!f() { test \"$1\" = get && echo \"password=$GITHUB_TOKEN\"; }; f"  # shell command
@@ -40,25 +41,22 @@ def main():
     # note: it may be easier to use github's "checkout" action here, with the correct args
     subprocess.run(["git", "clone", "--recursive", "--branch", tag, git_url, directory], check=True)
 
-    # remove added extra components
-    shutil.rmtree(directory + "/components/esp_dsp", ignore_errors=True)
-    shutil.rmtree(directory + "/components/esp32-camera", ignore_errors=True)
-    shutil.rmtree(directory + "/components/esp_littlefs", ignore_errors=True)
     # remove docs
     shutil.rmtree(directory + "/docs", ignore_errors=True)
-    # remove examples; enabling will brake Platformio Platform CI
-    #shutil.rmtree(directory + "/examples", ignore_errors=True)
 
-    zipfile = "{}.zip".format(directory)
+    tarfile = "{}.tar.xz".format(directory)
 
-    print("Zip needed files into {}...".format(zipfile))
-    subprocess.run(["/usr/bin/7z", "a", "-mx=9", "-tzip", "-xr!.*", zipfile, directory], check=True)
+    print("Creating tar.xz archive {}...".format(tarfile))
+    tar_archive = "{}.tar".format(directory)
+    subprocess.run(["tar", "--exclude=.*", "-cf", tar_archive, directory], check=True)
+    subprocess.run(["/usr/bin/7z", "a", "-mx=9", "-txz", tarfile, tar_archive], check=True)
+    os.remove(tar_archive)  # Clean up temporary tar
 
     try:
         release = repo.get_release(tag)
         print("Existing release found...")
-        if any(asset.name == zipfile for asset in release.get_assets()):
-            raise SystemExit("A release for tag {} already exists and has a zip file {}. Workflow configured wrong?".format(tag, zipfile))
+        if any(asset.name == tarfile for asset in release.get_assets()):
+            raise SystemExit("A release for tag {} already exists and has a tar.xz file {}. Workflow configured wrong?".format(tag, tarfile))
     except GithubException:
         print("Creating release...")
         is_prerelease = "-" in tag  # tags like vX.Y-something are pre-releases
@@ -70,11 +68,11 @@ def main():
                                           "(Draft created by Action)",
                                           draft=True, prerelease=is_prerelease)
 
-    print("Attaching zipfile(s)...")
-    release.upload_asset(zipfile)
+    print("Attaching tar.xz file...")
+    release.upload_asset(tarfile)
 
-    print("Release URL is {}".format(release.html_url)
-)
+    print("Release URL is {}".format(release.html_url))
+
 
 if __name__ == "__main__":
     main()
