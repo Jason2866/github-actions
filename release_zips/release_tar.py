@@ -40,19 +40,13 @@ def main():
     # note: it may be easier to use github's "checkout" action here, with the correct args
     subprocess.run(["git", "clone", "--recursive", "--branch", tag, git_url, directory], check=True)
 
-    # remove added extra components
-    shutil.rmtree(directory + "/components/esp32-camera", ignore_errors=True)
-    shutil.rmtree(directory + "/components/esp_littlefs", ignore_errors=True)
     # remove docs
     shutil.rmtree(directory + "/docs", ignore_errors=True)
-    # remove examples; enabling will brake Platformio Platform CI
-    #shutil.rmtree(directory + "/examples", ignore_errors=True)
 
     tarfile = "{}.tar.xz".format(directory)
 
     print("Creating tar.xz archive {}...".format(tarfile))
     # Create tar.xz with maximum compression
-    # --exclude-vcs-ignores excludes files matching .gitignore patterns
     subprocess.run(["tar", "-cJf", "--exclude=.*", tarfile, directory], check=True, env={**os.environ, "XZ_OPT": "-9"})
 
     try:
