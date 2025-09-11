@@ -47,8 +47,7 @@ def main():
     tarfile = "{}.tar.xz".format(directory)
 
     print("Creating tar.xz archive {}...".format(tarfile))
-    # Create tar.xz with default compression (6), max. compression (9) needs much more time and RAM
-    subprocess.run(["tar", "-cJf", "--exclude=.*", tarfile, directory], check=True, env={**os.environ, "XZ_OPT": "-6"})
+    subprocess.run(["/usr/bin/7z", "a", "-mx=9", "-txz", "-xr!.*", tarfile, directory], check=True)
 
     try:
         release = repo.get_release(tag)
