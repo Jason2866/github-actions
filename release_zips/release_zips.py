@@ -47,7 +47,10 @@ def main():
     tarfile = "{}.tar.xz".format(directory)
 
     print("Creating tar.xz archive {}...".format(tarfile))
-    subprocess.run(["/usr/bin/7z", "a", "-mx=9", "-txz", "-xr!.*", tarfile, directory], check=True)
+    tar_archive = "{}.tar".format(directory)
+    subprocess.run(["tar", "cf", tar_archive, directory, "--exclude=.*"], check=True)
+    subprocess.run(["/usr/bin/7z", "a", "-mx=9", "-txz", tarfile, tar_archive], check=True)
+    os.remove(tar_archive)  # Clean up temporary tar
 
     try:
         release = repo.get_release(tag)
