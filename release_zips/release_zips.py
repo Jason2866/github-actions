@@ -48,7 +48,7 @@ def main():
 
     print("Creating tar.xz archive {}...".format(tarfile))
     tar_archive = "{}.tar".format(directory)
-    subprocess.run(["tar", "cf", tar_archive, directory, "--exclude=.*"], check=True)
+    subprocess.run(["tar", "cf", tar_archive, "--exclude=.*", directory], check=True)
     subprocess.run(["/usr/bin/7z", "a", "-mx=9", "-txz", tarfile, tar_archive], check=True)
     os.remove(tar_archive)  # Clean up temporary tar
 
