@@ -37,9 +37,9 @@ def main():
     repo_name = github_repo.split("/")[1]
     directory = "{}-{}".format(repo_name, tag)
 
-    print("Doing a full recursive clone of {} ({}) into {}...".format(git_url, tag, directory))
+    print("Doing a branch recursive clone of {} ({}) into {}...".format(git_url, tag, directory))
     # note: it may be easier to use github's "checkout" action here, with the correct args
-    subprocess.run(["git", "clone", "--recursive", "--branch", tag, git_url, directory], check=True)
+    subprocess.run(["git", "clone", "--recursive", "--depth 1", "--shallow-submodule", "--branch", tag, git_url, directory], check=True)
 
     # remove docs
     shutil.rmtree(directory + "/docs", ignore_errors=True)
